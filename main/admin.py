@@ -2,7 +2,9 @@ from django.contrib import admin
 from .models import User
 import string
 from django.urls import reverse
+from django.http import HttpResponse
 from django.utils.safestring import mark_safe
+import csv
 import datetime
 
 # Register your models here.
@@ -22,7 +24,7 @@ class AlphabetFilter(admin.SimpleListFilter):
 
 class TimeFilter(admin.SimpleListFilter):
     title = 'time'
-    parameter_name = 'time_joined'
+    parameter_name = 'date_joined'
 
     def lookups(self, request, model_admin):
         """
@@ -49,37 +51,28 @@ class TimeFilter(admin.SimpleListFilter):
         # Compare the requested value to decide how to filter the queryset.
         today = datetime.datetime.now()
         if self.value() == '0':
-            hour = (today - datetime.timedelta(hours=6)).hour
-            minute = (today - datetime.timedelta(hours=6)).minute
-            time = f"{hour}:{minute}"
-            return queryset.filter(time_joined__gte=time)
+            hour = (today - datetime.timedelta(hours=6))
+            
+            return queryset.filter(date_joined__gte=hour)
         elif self.value() == '7':
-            h1 = (today - datetime.timedelta(hours=7)).hour
-            m1 = (today - datetime.timedelta(hours=7)).minute
-            t1 = f"{hour}:{minute}"
-
-            h2 = (today - datetime.timedelta(hours=13)).hour
-            m2 = (today - datetime.timedelta(hours=13)).minute
-            t2 = f"{hour}:{minute}"
-            return queryset.filter(time_joined__gte=t2, time_joined__lte=t1)
+            h1 = (today - datetime.timedelta(hours=7))
+            
+            h2 = (today - datetime.timedelta(hours=13))
+            
+            return queryset.filter(date_joined__gte=h2, date_joined__lte=h1)
         elif self.value() == '14':
-            h1 = (today - datetime.timedelta(hours=14)).hour
-            m1 = (today - datetime.timedelta(hours=14)).minute
-            t1 = f"{hour}:{minute}"
+            h1 = (today - datetime.timedelta(hours=14))
+            
 
-            h2 = (today - datetime.timedelta(hours=20)).hour
-            m2 = (today - datetime.timedelta(hours=20)).minute
-            t2 = f"{hour}:{minute}"
-            return queryset.filter(time_joined__gte=t2, time_joined__lte=t1)
+            h2 = (today - datetime.timedelta(hours=20))
+            
+            return queryset.filter(date_joined__gte=h2, date_joined__lte=h1)
         elif self.value() == '21':
-            h1 = (today - datetime.timedelta(hours=21)).hour
-            m1 = (today - datetime.timedelta(hours=21)).minute
-            t1 = f"{hour}:{minute}"
+            h1 = (today - datetime.timedelta(hours=21))
 
-            h2 = (today - datetime.timedelta(hours=27)).hour
-            m2 = (today - datetime.timedelta(hours=27)).minute
-            t2 = f"{hour}:{minute}"
-            return queryset.filter(time_joined__gte=t2, time_joined__lte=t1)
+            h2 = (today - datetime.timedelta(hours=27))
+            
+            return queryset.filter(date_joined__gte=h2, date_joined__lte=h1)
         
 
 
@@ -94,6 +87,33 @@ def change_user_status(obj):
 
 
 
+#converting the list of users
+def export_to_csv(modeladmin, request, queryset):
+    opts = modeladmin.model._meta
+    content_disposition = f'attachment; filename={opts.verbose_name}.csv'
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = content_disposition
+    writer = csv.writer(response)
+    fields = [field for field in opts.get_fields() if not field.many_to_many and not field.one_to_many]
+    # Write a first row with header information
+    writer.writerow([field.verbose_name for field in fields])
+    # Write data rows
+    for obj in queryset:
+        data_row = []
+        for field in fields:
+            value = getattr(obj, field.name)
+            if isinstance(value, datetime.datetime):
+                value = value.strftime('%d/%m/%Y')
+            data_row.append(value)
+        writer.writerow(data_row)
+    return response
+
+export_to_csv.short_description = 'Export to CSV'
+
+
+
+
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -101,3 +121,4 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'username', 'email', 'phone', 'is_active', change_user_status ]
     list_filter = ['date_joined','is_active', TimeFilter, AlphabetFilter]
     date_hierarchy = 'date_joined'
+    actions = [export_to_csv]
