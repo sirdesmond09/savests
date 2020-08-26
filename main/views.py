@@ -29,8 +29,7 @@ def deactivate_user(request, id):
 def mail_user(request):
 
     if request.method == 'POST':
-        print(request.user)
-        # admin = request.user
+
         recipient_list = []
 
         #we get all the users except the superusers
@@ -42,8 +41,7 @@ def mail_user(request):
 
         subject = request.POST['subject']
         from_mail = request.POST['sender']
-        print(recipient_list)
-        print(from_mail)
+    
 
         message = request.POST['message']
         
@@ -51,9 +49,7 @@ def mail_user(request):
         send_mail(subject, message, from_mail , recipient_list)
         messages.success(request, "Your message has been sent successfully!")
         
-        return render(request, 'admin/mail.html', )
+        return render(request, 'admin/mail.html')
     
-    context = {
-        
-    }
-    return render(request,'admin/mail.html',context)
+   
+    return render(request,'admin/mail.html')
