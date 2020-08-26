@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+    Send Mail
+{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url "admin:index" %}">Home</a> &rsaquo;
+        <a href="{% url "admin:main_user_changelist" %}">Users</a>&rsaquo;
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div style="flex-direction: column;display:flex;align-items:center;justify-content:center; width:100%" >
+        <h3> SEND MAIL TO ALL USERS </h3><br><br>
+        <p>Kindly enter your email address, the subject of your mail and your message. </p>
+
+        <form method='POST' style = 'width:100%' >
+        {% csrf_token %}
+
+
+        
+            <div >
+                <label for="subject" >Subject of mail</label>
+                <div >
+                    <input type="text" id="subject" name="subject" style = 'width:60%'  required>
+                </div>
+            </div><br>
+
+            <div >
+                <label for="Email" >Sender's Email</label>
+                <div >
+                    <input type="email" id="Email" name="sender" style = 'width:60%'  required>
+                </div>
+            </div><br>
+
+            <div >
+                <label for="message" >Your message</label>
+                <div >
+                    <textarea id="message" name="message" style = 'width:60%' rows="6" maxlength="3000" required></textarea>
+                </div>
+            </div><br>
+
+            <div >
+                <button type="submit" id="fcf-button" class="fcf-btn fcf-btn-primary fcf-btn-lg fcf-btn-block">Send Message</button>
+            </div>
+
+        </form>
+        
+    </div>
+
+{% endblock %}
+
